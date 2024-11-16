@@ -14,10 +14,26 @@ const FriendPage = () => {
 
   const [userPosts, setuserPosts] = useState([]);
   console.log(userPosts)
+  let dispatch = useDispatch()
  
   let location = useLocation()
-  let userDetails = {user:location.state}
+  const [userDetails, setuserDetails] = useState({user:location.state});
+ 
+
+
+
   console.log(userDetails)
+  const  getFriendUserDetails = async()=>{
+    let user = await axios.get(`http://localhost:8080/users/getUserbyId/${userDetails.user._id}`);
+    let data = user.data
+    console.log(data)
+    setuserDetails(data)
+   
+  }
+
+  let originalUser = useSelector((state) => state.user.user);
+  let token = useSelector((state) => state.user.token);
+  console.log(originalUser)
 
   const getuserPosts = async()=>{
     let res = await axios.post(`http://localhost:8080/posts/getFriendPost`,{userId:userDetails.user._id})
@@ -27,11 +43,28 @@ const FriendPage = () => {
   }
 
   useEffect(()=>{
+    getFriendUserDetails()
+  },[])
+
+  useEffect(()=>{
     getuserPosts()
+   
   },[userDetails.user._id])
 
 
 
+  const handleFollow = async()=>{
+      let res = await axios.post(`http://localhost:8080/users/follow/${userDetails.user._id}`,{},{
+        headers:{
+          'Authorization':token
+        }
+      })
+      console.log(res.data)
+      if(res.data.success){
+        getFriendUserDetails()
+        dispatch(fetchUserById(token))
+      }
+  }
   
 
 
@@ -48,9 +81,21 @@ const FriendPage = () => {
   <img src={userDetails?.user?.profilePic} className="rounded-full object-cover w-full h-full border-solid border-white border-2" />		
   </div>
   </div>
-  <div className="text-center px-3 pb-6 pt-2">
-    <h3 className="text-white text-sm bold font-sans">{userDetails?.user?.name}</h3>
-    <p className="mt-2 font-sans font-light text-white">{userDetails?.user?.bio}</p>
+  <div className="text-center  px-3 pb-6 pt-2">
+   
+      <div>
+      <h3 className="text-white text-sm bold font-sans">{userDetails?.user?.name}</h3>
+      <p className="mt-2 font-sans font-light text-white">{userDetails?.user?.bio}</p>
+      </div>
+      <div className=' mt-3'>
+      {
+        originalUser?.followings?.includes(userDetails?.user?._id) ?<button onClick={handleFollow}  className='bg-green-900 w-[130px] text-white px-4 py-3 rounded-md hover:bg-green-500 hover:text-black'>Unfollow</button>
+         :
+        <button onClick={handleFollow} className='bg-green-900 w-[130px] text-white px-4 py-3 rounded-md hover:bg-green-500 hover:text-black'>follow</button>
+      }
+    
+        
+    </div>
   </div>
   <div className="flex justify-center pb-3 text-white">
     <div className="text-center mr-3 border-r pr-3">

@@ -213,7 +213,7 @@ const getUserByName = async (req, res) => {
     if(name){
         console.log(name)
         const regex = new RegExp( name, 'i'); 
-        let users = await User.find({ name: regex })
+        let users = await User.find({ name: regex }).populate({path:'followers',select:'-password'}).populate({path:'followings',select:'-password'})
         res.json({ "users": users })
     }
     else{
@@ -222,6 +222,50 @@ const getUserByName = async (req, res) => {
    
 }
 
+const getUserbyId = async(req,res)=>{
+    let userId = req.params.userId;
+   try {
+    let user = await User.findById(userId).select('-password');
+    res.json({msg:"user get successfully",success:true,user});
+   } catch (error) {
+    res.json({msg:'error in user getting', success:false,error:error.message})
+   }
+
+
+
+}
+
+
+const followUser = async(req,res)=>{
+    let userId = req.user;
+    let friendId = req.params.friendId
+
+  try {
+    let user = await User.findById(userId);
+    let friend = await  User.findById(friendId)
+
+    if(user.followings.includes(friend._id) && friend.followers.includes(user._id)){
+        user.followings.pull(friend._id)
+        friend.followers.pull(user._id)
+        await user.save()
+        await friend.save()
+        return res.json({msg:"user unfollwed successfully",success:true})
+    }
+    else{
+        user.followings.push(friend._id)
+        friend.followers.push(user._id)
+        await user.save()
+        await friend.save()
+        return res.json({msg:"user follwing successfully",success:true})
+    }
+  } catch (error) {
+    res.json({msg:"error in follwing ",successs:false,error:error.message})
+  }
+ 
+
+
+
+}
 
 // console.log("folder = ",__dirname)
 module.exports = {
@@ -232,5 +276,7 @@ module.exports = {
     getUserDetails,
     forgetPassword,
     getTokenMail, getUserByName,
-    finalResetPassword
+    finalResetPassword,
+    followUser,
+    getUserbyId
 }

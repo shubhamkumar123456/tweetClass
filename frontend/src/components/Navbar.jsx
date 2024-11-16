@@ -145,7 +145,7 @@ function Navbar() {
                {searchedUsers && <div className='absolute w-full text-black mt-1 rounded-md bg-yellow-300'>
                      {
                       searchedUsers.map((user)=>{
-                        return <Link to={`/friendPage?name=${user.name}`} state={user} className='flex p-2 items-center gap-3 mt-2 border-b-2'> 
+                        return userDetails._id!==user._id && <Link to={`/friendPage?name=${user.name}`} state={user} className='flex p-2 items-center gap-3 mt-2 border-b-2'> 
                           <img src={user.profilePic} className='w-10 h-10 rounded-full' alt="" />
                           <p>{user.name}</p>
                         </Link>
